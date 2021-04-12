@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:good_movie_fan/model/display_data/movie_display_data.dart';
 import 'package:good_movie_fan/model/movie.dart';
+import 'package:good_movie_fan/navigation/page_stack.dart';
 import 'package:good_movie_fan/network/key_values.dart';
 import 'package:good_movie_fan/page/movie_details.dart';
 import 'package:good_movie_fan/preferences/layout_type.dart';
@@ -69,10 +70,12 @@ class MovieTile extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MovieDetails(_movie)),
-        );
+        var pageStack = context.read<PageStack>();
+        pageStack.push( MovieDetails(_movie), MovieDisplayData(_movie).title);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => MovieDetails(_movie)),
+        // );
       },
       child: Card(
         child: movieTile,

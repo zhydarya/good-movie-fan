@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:good_movie_fan/model/movie.dart';
 import 'package:good_movie_fan/model/person.dart';
+import 'package:good_movie_fan/strings.dart';
 
 enum CreditType { cast, crew }
+
+extension CreditTypeProperties on CreditType {
+  String get name {
+    switch (this) {
+      case CreditType.cast:
+        return Strings.cast;
+      case CreditType.crew:
+        return Strings.crew;
+    }
+    assert(false, "Unimplemented name for credit type: $this");
+  }
+}
 
 class Credit {
   static const keyId = 'credit_id';

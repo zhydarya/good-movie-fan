@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:good_movie_fan/model/catalog.dart';
-import 'package:good_movie_fan/page/home.dart';
+import 'package:good_movie_fan/navigation/page_route.dart';
+import 'package:good_movie_fan/navigation/page_stack.dart';
 import 'package:good_movie_fan/preferences/preferences.dart';
 import 'package:good_movie_fan/strings.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 class GoodMovieFanApp extends StatelessWidget {
   @override
@@ -20,6 +19,7 @@ class GoodMovieFanApp extends StatelessWidget {
             return preferences..sharedPreferences = sharedPreferences;
           },
         ),
+        ChangeNotifierProvider(create: (context) => PageStack()),
       ],
       child: MaterialAppConsumer(),
     );
@@ -37,14 +37,43 @@ class MaterialAppConsumer extends StatelessWidget {
         darkTheme: _buildDarkTheme(),
         themeMode: context.select<Preferences, ThemeMode>(
             (preferences) => preferences.themeMode),
-        home: Home(NavigationPage.home),
+        home: _home(context),
+
         //TODO add Settings to be able to switch theme mode from any screen
         // initialRoute: '/',
         // routes: {
         //   '/': (context) => Home(NavigationPage.home),
         //   '/settings': (context) => Settings(),
         // },
-        navigatorObservers: [routeObserver],
+      ),
+    );
+  }
+
+  Widget _home(BuildContext context) {
+    var _pageStack = context.watch<PageStack>();
+
+    return WillPopScope(
+      onWillPop: () async {
+        if (_pageStack.pages.length > 1) {
+          _pageStack.pop(context);
+          return false;
+        }
+        return true;
+      },
+      child: Navigator(
+        pages: _pageStack.pages
+            .map((pageEntry) => MoviePage(
+          pageEntry.valueKey,
+          pageEntry.page,
+        ))
+            .toList(),
+        onPopPage: (route, result) {
+          if (route.didPop(result)) {
+            _pageStack.pop(context);
+            return true;
+          }
+          return false;
+        },
       ),
     );
   }

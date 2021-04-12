@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:good_movie_fan/app.dart';
 import 'package:good_movie_fan/dialog/search_dialog.dart';
+import 'package:good_movie_fan/navigation/page_stack.dart';
 import 'package:good_movie_fan/strings.dart';
+import 'package:provider/provider.dart';
 
 const int _animationDuration = 500;
 
@@ -15,7 +16,7 @@ class Fab extends StatefulWidget {
 }
 
 class _FabState extends State<Fab>
-    with SingleTickerProviderStateMixin, RouteAware {
+    with SingleTickerProviderStateMixin {
   AnimationController _animationController;
   Animation<Color> _animateColor;
   Animation<double> _animateIcon;
@@ -44,6 +45,10 @@ class _FabState extends State<Fab>
         curve: _curve,
       ),
     ));
+    var pageStack = context.watch<PageStack>();
+    if (pageStack.pages.length > 1 && !_closed) {
+      _toggle(timeout: 0);
+    }
     return FloatingActionButton(
       backgroundColor: _animateColor.value,
       tooltip: Strings.searchMovies,
@@ -56,23 +61,9 @@ class _FabState extends State<Fab>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context));
-  }
-
-  @override
   dispose() {
     _animationController.dispose();
-    routeObserver.unsubscribe(this);
     super.dispose();
-  }
-
-  @override
-  void didPushNext() {
-    if (!_closed) {
-      _toggle(timeout: 0);
-    }
   }
 
   void _initAnimation() {

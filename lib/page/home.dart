@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:good_movie_fan/model/catalog.dart';
 import 'package:good_movie_fan/model/favorites.dart';
+import 'package:good_movie_fan/navigation/page_stack.dart';
 import 'package:good_movie_fan/preferences/layout_type.dart';
 import 'package:good_movie_fan/preferences/preferences.dart';
 import 'package:good_movie_fan/preferences/theme_mode.dart';
@@ -186,16 +187,14 @@ class _HomeState extends State<Home> {
       return;
     }
     var newPage = NavigationPage.values[index];
+    var pageStack = context.read<PageStack>();
+
     switch (newPage) {
       case NavigationPage.favorites:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => Home(NavigationPage.favorites)),
-        );
+        pageStack.push(Home(NavigationPage.favorites), Strings.favorites);
         break;
       case NavigationPage.home:
-        Navigator.pop(context);
+        pageStack.pop(context);
         break;
       default:
         assert(false, "Unimplemented Navigation item selected");

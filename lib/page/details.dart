@@ -2,12 +2,15 @@ import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:good_movie_fan/model/credit.dart';
 import 'package:good_movie_fan/model/display_data/display_data.dart';
+import 'package:good_movie_fan/navigation/page_stack.dart';
 import 'package:good_movie_fan/network/key_values.dart';
 import 'package:good_movie_fan/page/credit_list.dart';
 import 'package:good_movie_fan/page/videos.dart';
 import 'package:good_movie_fan/page/webpage.dart';
 import 'package:good_movie_fan/strings.dart';
+import 'package:good_movie_fan/widget/navigation_drawer.dart';
 import 'package:good_movie_fan/widget/progress_indicator.dart';
+import 'package:provider/provider.dart';
 
 abstract class Details extends StatelessWidget {
   static const _creditBtnSize = 70.0;
@@ -50,6 +53,7 @@ abstract class Details extends StatelessWidget {
             appBar: _appBar(context),
             body: _body(context),
             persistentFooterButtons: _footerButtons(),
+            drawer: NavigationDrawer(),
           );
         }
         if (futureResult.hasError) {
@@ -162,7 +166,7 @@ abstract class Details extends StatelessWidget {
                         displayData.properties.values.elementAt(index)),
                 itemCount: displayData.properties.length,
               ),
-              if (displayData.videos.isNotEmpty) _video(),
+              if (displayData.videos.isNotEmpty) _video(context),
             ],
           ),
         ),
@@ -211,45 +215,41 @@ abstract class Details extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        _creditContainer(Strings.cast, CreditType.cast),
+        _creditContainer(Strings.cast, CreditType.cast, context),
         const SizedBox(width: 4.0),
-        _creditContainer(Strings.crew, CreditType.crew),
+        _creditContainer(Strings.crew, CreditType.crew, context),
       ],
     );
   }
 
-  Widget _creditContainer(String title, CreditType creditType) {
-    return OpenContainer(
-      openBuilder: (context, closedContainer) {
-        return creditListPage(creditType);
+  Widget _creditContainer(
+      String title, CreditType creditType, BuildContext context) {
+    return InkWell(
+      onTap: () {
+        var pageStack = context.read<PageStack>();
+        pageStack.push(creditListPage(creditType),
+            "${displayData.title} ${creditType.name}");
       },
-      closedShape: CircleBorder(),
-      closedBuilder: (context, openContainer) {
-        return InkWell(
-          onTap: () {
-            openContainer();
-          },
-          child: new Container(
-            width: _creditBtnSize,
-            height: _creditBtnSize,
-            decoration: new BoxDecoration(
-              shape: BoxShape.circle,
-              color: _widgetColor,
-            ),
-            child: ListTile(
-              title: Text(
-                title,
-                style: const TextStyle(fontSize: 10.0),
-              ),
-              subtitle: const Icon(Icons.people_alt_outlined),
-            ),
+      child: new Container(
+        width: _creditBtnSize,
+        height: _creditBtnSize,
+        decoration: new BoxDecoration(
+          shape: BoxShape.circle,
+          color: _widgetColor,
+        ),
+        child: ListTile(
+          title: Text(
+            title,
+            style: const TextStyle(fontSize: 10.0),
           ),
-        );
-      },
+          subtitle: const Icon(Icons.people_alt_outlined),
+        ),
+      ),
     );
   }
 
-  Widget _video() {
+  Widget _video(BuildContext context) {
+    CloseContainerActionCallback videoCloseCallback;
     return Container(
       constraints:
           BoxConstraints.loose(Size(_videoBtnConstraint, _videoBtnConstraint)),
@@ -268,7 +268,8 @@ abstract class Details extends StatelessWidget {
           itemBuilder: (_, index) => Padding(
             padding: const EdgeInsets.all(1.0),
             child: OpenContainer(
-              openBuilder: (context, closedContainer) {
+              openBuilder: (context, closeContainer) {
+                videoCloseCallback = closeContainer;
                 return Videos(
                   displayData.videos.values.elementAt(index),
                   displayData.videos.keys.elementAt(index),
@@ -286,6 +287,9 @@ abstract class Details extends StatelessWidget {
                   padding: const EdgeInsets.all(7.0),
                   child: InkWell(
                     onTap: () {
+                      context
+                          .read<PageStack>()
+                          .onPushedToNavigator(videoCloseCallback);
                       openContainer();
                     },
                     child: GridTile(
